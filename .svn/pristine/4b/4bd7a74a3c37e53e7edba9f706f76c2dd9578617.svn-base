@@ -1,0 +1,16 @@
+#\u8BBE\u5907\u4FE1\u606F\uFF0C
+GateWays=kingray2,kingray
+kingray.comPort=COM9
+kingray.baudRate=9600
+kingray.manufacturer=SIEMENS
+kingray.model=MC39i
+
+kingray2.comPort=COM7
+kingray2.baudRate=9600
+kingray2.manufacturer=SIEMENS
+kingray2.model=MC39i
+
+kingray3.comPort=COM11
+kingray3.baudRate=9600
+kingray3.manufacturer=AT+CGMMMC39i
+kingray3.model=MULTIBAND  900E  1800

@@ -1,0 +1,180 @@
+/**
+ * spark_src
+ */
+package com.xiongyingqi.utils;
+
+import java.lang.Thread.State;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+
+/**
+ * @author 瑛琪 <a href="http://xiongyingqi.com">xiongyingqi.com</a>
+ * @version 2013-9-10 下午4:12:07
+ */
+public class ThreadPool {
+	private static ExecutorService pool = new ScheduledThreadPoolExecutor(5);
+	
+	public static void invoke(Runnable runnable){
+		try {
+			pool.execute(runnable);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void invoke(Runnable runnable, Object callBack, Method method, Object... parameters){
+		invoke(runnable);
+		try {
+			method.invoke(callBack, parameters);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void invoke(Object instance, Method method, Object... parameters){
+		if(instance != null && method != null){
+			ProxyThread proxyThread = new ProxyThread(instance, method, parameters);
+			pool.execute(proxyThread);
+		} else {
+			EntityHelper.print("空对象");
+			StackTraceHelper.printStackTrace();
+		}
+	}
+	
+	public static void shutDown(){
+		new Thread(new StateThread()).start();
+	}
+	
+	private static void shutDowned(){
+		
+	}
+	
+	static class ProxyThread implements Runnable {
+		private Object instance; 
+		private Method method; 
+		private Object[] parameters;
+		
+		public ProxyThread(){
+			
+		}
+		public ProxyThread(Object instance, Method method, Object... parameters){
+			this.instance = instance;
+			this.method = method;
+			this.parameters = parameters;
+			EntityHelper.printDetail(instance);
+			EntityHelper.printDetail(method);
+			EntityHelper.printDetail(parameters);
+		}
+		/**
+		 * <br>2013-9-10 下午4:38:38
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run() {
+			try {
+				method.invoke(instance, parameters);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		/**
+		 * Object
+		 * @return the instance
+		 */
+		public Object getInstance() {
+			return instance;
+		}
+		/**
+		 * Object
+		 * @param instance the instance to set
+		 */
+		public void setInstance(Object instance) {
+			this.instance = instance;
+		}
+		/**
+		 * Method
+		 * @return the method
+		 */
+		public Method getMethod() {
+			return method;
+		}
+		/**
+		 * Method
+		 * @param method the method to set
+		 */
+		public void setMethod(Method method) {
+			this.method = method;
+		}
+		/**
+		 * Object[]
+		 * @return the parameters
+		 */
+		public Object[] getParameters() {
+			return parameters;
+		}
+		/**
+		 * Object[]
+		 * @param parameters the parameters to set
+		 */
+		public void setParameters(Object[] parameters) {
+			this.parameters = parameters;
+		}
+		
+	}
+	
+	static class StateThread implements Runnable {
+		@Override
+		public void run() {
+			ExecutorService executorService = ThreadPool.pool;
+			while (true) {
+				Thread[] leastThreads = new Thread[Thread.activeCount()];
+				int length = Thread.enumerate(leastThreads);
+				
+				boolean isAllWaiting = false;
+				for (int i = 0; i < leastThreads.length; i++) {
+					Thread thread = leastThreads[i];
+					System.out.println("thread: " + thread.toString());
+					System.out.println(thread.getState());
+					
+					System.out.println("thread.getState() == State.WAITING: " + (thread.getState() == State.WAITING));
+
+					if(thread.getName().startsWith("pool")){
+						if (thread.getState() == State.WAITING) {
+							isAllWaiting = true;
+//						thread.interrupt();
+//						System.out.println("等待线程结束：" + thread);
+						} else {
+							isAllWaiting = false;
+						}
+					}
+					// System.out.println(Thread.currentThread().getId());
+				}
+				if(isAllWaiting){
+					executorService.shutdownNow();
+					if(executorService.isShutdown()){
+						System.out.println("pool.isShutdown() ================= " + executorService.isShutdown());
+						shutDowned();
+						return;
+					}
+				}
+				try {
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+}
