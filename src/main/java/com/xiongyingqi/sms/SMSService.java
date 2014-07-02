@@ -1,9 +1,5 @@
 package com.xiongyingqi.sms;
-
-// JindiSMS v3.1 
-// 该程序主要用于GSM Modem短信发送示例。
-// 金笛短信网 www.sendsms.cn
-// 为节省您的开发时间，请配合金笛短信设备以达到最佳效果。 
+ 
 
 import java.util.*;
 import java.io.*;
